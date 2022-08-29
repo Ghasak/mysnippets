@@ -1,38 +1,5 @@
 #!/usr/bin/env bash
 
-function help() {
-
-    echo -e "
-Usage: ${BLUE}$0${NC}
-mysnippet [${YELLOW}OPTIONS${NC}]
-    ${GREEN}cs  ${NC} | (--${MAGENTA}create_snipeet${NC})    : create a new capsules
-    ${GREEN}ls  ${NC} | (--${MAGENTA}list_snippet${NC})      : list all saved capsules
-    ${GREEN}[vV]${NC} | (--${MAGENTA}version${NC})           : current CLI version
-    ${GREEN}[hH]${NC} | (--${MAGENTA}help${NC})              : show this help
-
-${YELLOW}OPTIONS${NC}:
---------
-	(-${RED}cc${NC})   | (${YELLOW}--create_capsule${NC})    : create a new capsules
-	(-${RED}l${NC})    | (${YELLOW}--list_capsules${NC})     : list all saved capsules
-	(-${RED}rc${NC})   | (${YELLOW}--restore_capsule${NC})   : restore a capsule
-	(-${RED}[${BLUE}vV${RED}]${NC}) | (${YELLOW}--version${NC})           : current CLI version
-	(-${RED}[${BLUE}hH${RED}]${NC}) | (${YELLOW}--help${NC})              : show this help
-
-${YELLOW}DEPENDENCIES${NC}:
--------------
-	- ${BLUE}gdu${NC}       : ${RED}brew${NC} install ${BLUE}gdu${NC}
-	- ${BLUE}pv${NC}        : ${RED}brew${NC} install ${BLUE}pv${NC}
-	- ${BLUE}zip${NC}       : ${RED}brew${NC} install ${BLUE}zip${NC}
-
-${YELLOW}NOTES${NC}:
-------
-	${YELLOW}MacOSX${NC}: ${RED}\$HOME${NC} is ${BLUE}\$home${NC} for ${YELLOW}GNU Linux${NC}
-	Old Usage: ${RED}nvimTime${NC} [${YELLOW}OPTION${NC}] [${BLUE}FILE${NC}] [${MAGENTA}ARGUMENT${NC}] ...
-	"
-    exit 0
-
-}
-
 TITLE="Compile and watch on system: $HOSTNAME"
 RIGHT_NOW="$(date +"%x %r %Z")"
 CREAT_TIME_STAMP="Updated on $RIGHT_NOW by $USER"
@@ -41,8 +8,61 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 MAGENTA='\033[0;35m'
 YELLOW='\033[0;33m'
+GRAY="\e[37m"
+BLUE="\e[34m"
+LIGHT_YELLOW="\e[93m"
+ENDCOLOR="\e[0m"
 NC='\033[0m' # No Color
 TIME_STAMP=$(date +%Y-%m-%d-%H%M%S)
+
+function help() {
+
+    echo -e "
+Usage: ${BLUE}$0${NC}
+mysnippet [${YELLOW}OPTIONS${NC}]
+    ${GREEN}cs  ${NC} | (--${MAGENTA}create_snippet${NC})    : create a new capsules
+    ${GREEN}ls  ${NC} | (--${MAGENTA}list_snippet${NC})      : list all saved capsules
+    ${GREEN}[vV]${NC} | (--${MAGENTA}version${NC})           : current CLI version
+    ${GREEN}[hH]${NC} | (--${MAGENTA}help${NC})              : show this help
+
+${YELLOW}OPTIONS${NC}:
+--------
+	(-${RED}cc${NC})   | (${YELLOW}--create_snippet${NC})    : create a new capsules
+	(-${RED}l${NC})    | (${YELLOW}--list_snippet${NC})      : list all saved capsules
+	(-${RED}[${BLUE}vV${RED}]${NC}) | (${YELLOW}--version${NC})           : current CLI version
+	(-${RED}[${BLUE}hH${RED}]${NC}) | (${YELLOW}--help${NC})              : show this help
+
+${YELLOW}DEPENDENCIES${NC}:
+-------------
+	- ${BLUE}fzf${NC}       : ${RED}brew${NC} install ${BLUE}fzf${NC}
+	- ${BLUE}rga${NC}        : ${RED}brew${NC} install ${BLUE}ripgrep${NC}
+
+${YELLOW}NOTES${NC}:
+------
+	${YELLOW}MacOSX${NC}: ${RED}\$HOME${NC} is ${BLUE}\$home${NC} for ${YELLOW}GNU Linux${NC}
+	Old Usage: ${RED}nvimTime${NC} [${YELLOW}OPTION${NC}] [${BLUE}FILE${NC}] [${MAGENTA}ARGUMENT${NC}] ...
+ ${GRAY}****************************${ENDCOLOR}
+ ${GREEN}     Search syntax:${ENDCOLOR}
+ ${GRAY}****************************${ENDCOLOR}
+ ${GRAY}Besides the already discussed fuzzy search, fzf supports special tokens that change the way search terms are processed:
+ ${LIGHT_YELLOW}\'wild${ENDCOLOR}    : ${GRAY}Exact match, return items that include wild.
+ ${LIGHT_YELLOW}^music${ENDCOLOR}   : ${GRAY}Prefix-exact-match, return items that start with music.
+ ${LIGHT_YELLOW}.mp3\$${ENDCOLOR}    : ${GRAY}Suffix-exact-match, return items that end with .mp3.
+ ${LIGHT_YELLOW}\!fire${ENDCOLOR}   : ${GRAY}Inverse-exact-match, return items that do not include fire.
+ ${LIGHT_YELLOW}\!^music${ENDCOLOR} : ${GRAY}Inverse-prefix-exact-match, return items that do not start with music.
+ ${LIGHT_YELLOW}\!.mp3\$${ENDCOLOR}  : ${GRAY}Inverse-suffix-exact-match, return items that do not end with .mp3.
+ ${GRAY}****************************${ENDCOLOR}
+ ${RED} Note${ENDCOLOR}
+ ${GRAY}****************************${ENDCOLOR}
+ ${GRAY}that SPACE acts as an AND operator and | as an OR. For example, a
+ ${GRAY}query that matches entries that start with music and end with either
+ ${GRAY}mp3, wav, or flac would look like this:
+ ${LIGHT_YELLOW}^music mp3$ | wav$ | flac$ ${ENDCOLOR}
+ ${GRAY}LINK: ${BLUE}https://betterprogramming.pub/boost-your-command-line-productivity-with-fuzzy-finder-985aa162ba5d#c4fb${ENDCOLOR}
+"
+    exit 0
+
+}
 
 function currentTime() {
     TIME_STAMP=$(date +%Y-%m-%d-%H%M%S)
@@ -66,18 +86,18 @@ function whichSystem() {
 echo -ne "$RED$SYSTEM_TYPE$NC"
 
 # ****************************************************************************
+#                 prerequisites for the CLI
 # ****************************************************************************
 
 function mac_install_prerequisites() {
     echo -e "[${YELLOW}\uf046${NC} ] ${MAGENTA}Installing prerequisites ...${NC}"
-    if [[ -d "$HOME/.mysnippets" ]]; then
-        echo -e "[${GREEN}\ue5fe${NC} ] ${BLUE}$HOME/.mysnippets${NC} already exists."
-        SNIPPET_DIR="$HOME/.mysnippets/"
+    if [[ -d "$HOME/.mysnippetsCollection" ]]; then
+        echo -e "[${GREEN}\ue5fe${NC} ] ${BLUE}$HOME/.mysnippetsCollection${NC} already exists."
     else
-        mkdir -p $HOME/.mysnippets
-        echo -e "[${GREEN}\uf413${NC} ] ${GREEN}$HOME/.mysnippets${NC} is created."
-        SNIPPET_DIR="./"
+        mkdir -p $HOME/.mysnippetsCollection
+        echo -e "[${GREEN}\uf413${NC} ] ${GREEN}$HOME/.mysnippetsCollection${NC} directory is created ... "
     fi
+    SNIPPET_DIR="$HOME/.mysnippetsCollection/"
 }
 # ****************************************************************************
 ##           Global variables
@@ -110,15 +130,35 @@ EoF
 }
 
 # ****************************************************************************
+#               Function used to  fuzzy finding files and edit with
+#                     default editor --- pure dev
 # ****************************************************************************
-k
+fe() {
+    local files
+    IFS=$'\n' files=($(fzf --exact --info=inline --border --margin=1 --padding=1 --sort --preview-window down:80%:wrap --preview 'glow --style=dark {}' --query=$1))
+    [[ -n "$files" ]] && $DEFAULTEDITOR "${files[@]}"
+}
 # ****************************************************************************
+#                Current version
+# ****************************************************************************
+function version() {
+	cat <<EOF
+Version: 0.0.1
+EOF
+}
+# ****************************************************************************
+#         Function used to get user custom snippet - backbone-function
 # ****************************************************************************
 function fileName_with_tags() {
     local answer=$(echo $1)
     local all_tags=$(echo $2)
     # List must be sperated with space items
-    local languages_list=('python' 'cpp' 'bash' 'shell' 'zsh' 'PHP' 'TypeScript' 'Scala' 'Shell' 'PowerShell' 'Perl' 'Haskell' 'Kotlin' 'SQL' 'MATLAB' 'Groovy' 'Lua' 'Rust' 'Ruby' 'HTML and CSS' 'Python' 'Java' 'JavaScript' 'Swift' 'C++' 'C#' 'R' 'Golang (Go)' 'vim')
+    local languages_list=('python' 'cpp' 'bash' 'terminal' 'Terminal' 'shell' 'zsh' 'PHP' 'TypeScript' 'Scala'
+        'Shell' 'PowerShell' 'Perl' 'Haskell' 'Kotlin' 'SQL' 'MATLAB' 'Groovy' 'Lua' 'Rust' 'Ruby' 'HTML and CSS'
+        'Python' 'Java' 'JavaScript' 'Swift' 'C++' 'C#' 'R' 'Golang (Go)' 'vim' 'apple' 'mac' 'macOS' 'appleScript'
+        'linux' 'gnu-linux' 'ubuntu' 'note' 'memo'
+    )
+
     for lang in "${languages_list[@]}"; do
         if [[ "$lang" == "$answer" ]]; then
             echo -e "The language$RED $answer$NC Is already existed.."
@@ -178,12 +218,20 @@ if [[ $SYSTEM_TYPE == 'macOSX' ]]; then
             else
                 # Using the tags that you will assigne to the file name
                 # https://fossies.org/linux/fzf/ADVANCED.md
-                if [[ -d "$HOME/.mysnippets/" ]];then
-                cd $HOME/.mysnippets/ &&
-                fzf  --info=inline --border --margin=1 --padding=1 --sort --preview-window down:80%:wrap --preview 'glow --style=dark {}'
+                if [[ -d "$SNIPPET_DIR" ]]; then
+                    cd $SNIPPET_DIR &&
+                        fzf --exact --info=inline --border --margin=1 --padding=1 --sort --preview-window down:80%:wrap --preview 'glow --style=dark {}'
                 # for selection specific --query .md
                 fi
             fi
+            exit 1
+
+            ;;
+        -[e] | --edit | --amend | ---change | --add)
+
+            cd $SNIPPET_DIR
+            # Function will use fzf to edit and open a snippet
+            fe
             exit 1
 
             ;;
